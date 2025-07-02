@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Пациенттің пікірі</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Пациенттің пікірі</h1>
+    <form id="reviewForm">
+      <label for="department">Бөлімше:</label>
+      <select id="department" name="department" required disabled>
+        <option value="">Бөлімшені таңдаңыз</option>
+      </select>
+
+      <label for="doctor">Дәрігер:</label>
+      <select id="doctor" name="doctor">
+        <option value="">Дәрігерді таңдаңыз</option>
+      </select>
+
+      <label for="nurse">Медбике:</label>
+      <select id="nurse" name="nurse">
+        <option value="">Медбикені таңдаңыз</option>
+      </select>
+
+      <label for="patient_name">Аты-жөніңіз:</label>
+      <input type="text" id="patient_name" name="patient_name" required>
+
+      <label for="patient_phone">Телефон нөмірі:</label>
+      <input type="tel" id="patient_phone" name="patient_phone" required>
+
+      <h2>Сауалнама</h2>
+      <div class="question">
+        <p>1️⃣ Қызметкерлердің сыпайылығы мен қарым-қатынасы</p>
+        <label><input type="radio" name="q1" value="5" required> Өте риза болдым</label>
+        <label><input type="radio" name="q1" value="4"> Риза болдым</label>
+        <label><input type="radio" name="q1" value="3"> Орташа</label>
+        <label><input type="radio" name="q1" value="2"> Риза болмадым</label>
+        <label><input type="radio" name="q1" value="1"> Мүлде риза болмадым</label>
+      </div>
+      <div class="question">
+        <p>2️⃣ Көрсетілген қызметтің сапасы</p>
+        <label><input type="radio" name="q2" value="5" required> Өте жақсы</label>
+        <label><input type="radio" name="q2" value="4"> Жақсы</label>
+        <label><input type="radio" name="q2" value="3"> Қанағаттанарлық</label>
+        <label><input type="radio" name="q2" value="2"> Нашар</label>
+        <label><input type="radio" name="q2" value="1"> Өте нашар</label>
+      </div>
+      <div class="question">
+        <p>3️⃣ Қызмет көрсету жылдамдығы</p>
+        <label><input type="radio" name="q3" value="3" required> Иә, толық қанағаттандырды</label>
+        <label><input type="radio" name="q3" value="2"> Жартылай қанағаттандырды</label>
+        <label><input type="radio" name="q3" value="1"> Жоқ, қанағаттандырмады</label>
+      </div>
+      <div class="question">
+        <p>4️⃣ Ақпараттың түсініктілігі</p>
+        <label><input type="radio" name="q4" value="3" required> Иә, толық түсінікті</label>
+        <label><input type="radio" name="q4" value="2"> Жартылай түсінікті</label>
+        <label><input type="radio" name="q4" value="1"> Мүлде түсініксіз</label>
+      </div>
+      <div class="question">
+        <p>5️⃣ Қызметкерлердің кәсіби деңгейі</p>
+        <label><input type="radio" name="q5" value="5" required> Өте жоғары</label>
+        <label><input type="radio" name="q5" value="4"> Жоғары</label>
+        <label><input type="radio" name="q5" value="3"> Орташа</label>
+        <label><input type="radio" name="q5" value="2"> Төмен</label>
+        <label><input type="radio" name="q5" value="1"> Өте төмен</label>
+      </div>
+      <div class="question">
+        <p>6️⃣ Мекеме тазалығы мен жайлылығы</p>
+        <label><input type="radio" name="q6" value="3" required> Иә, толық қанағаттандырды</label>
+        <label><input type="radio" name="q6" value="2"> Жартылай қанағаттандырды</label>
+        <label><input type="radio" name="q6" value="1"> Жоқ, қанағаттандырмады</label>
+      </div>
+      <div class="question">
+        <p>7️⃣ Жалпы қанағаттану деңгейі</p>
+        <label><input type="radio" name="q7" value="5" required> Өте риза болдым</label>
+        <label><input type="radio" name="q7" value="4"> Риза болдым</label>
+        <label><input type="radio" name="q7" value="3"> Орташа</label>
+        <label><input type="radio" name="q7" value="2"> Риза болмадым</label>
+        <label><input type="radio" name="q7" value="1"> Мүлде риза болмадым</label>
+      </div>
+
+      <button type="submit">Жіберу</button>
+    </form>
+  </div>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="main.js" defer></script>
+</body>
+</html>
