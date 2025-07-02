@@ -1,14 +1,14 @@
-// main.js
+// Вместо импорта
 // import { createClient } from 'npm:@supabase/supabase-js@2';
 
 // Инициализация клиента Supabase
-const supabase = supabase.createClient(
+const sb = supabase.createClient(
   'https://agklbyjwunjzqsfkeeuz.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJisp3OiJzdXBhYmFzZSIsInJlZiI6ImFna2xieWp3dW5qenFzZmtlZXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDc0OTIsImV4cCI6MjA2NzAyMzQ5Mn0.1LH7fpYotFDJs6Pk0I-eDvowlsVJOCerl0uqiXFctqk'
 );
 
 async function loadDepartments() {
-  const { data, error } = await supabase.from('departments').select('*');
+  const { data, error } = await sb.from('departments').select('*');
   if (error) {
     console.error('Error loading departments:', error);
     return;
@@ -35,7 +35,7 @@ async function loadDepartments() {
 }
 
 async function loadDoctors(departmentId) {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('doctors')
     .select('*')
     .eq('department_id', departmentId);
@@ -54,7 +54,7 @@ async function loadDoctors(departmentId) {
 }
 
 async function loadNurses(departmentId) {
-  const { data, error } = await supabase
+  const { data, error } = await sb
     .from('nurses')
     .select('*')
     .eq('department_id', departmentId);
@@ -93,7 +93,7 @@ async function submitReview(event) {
     created_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('reviews').insert([review]);
+  const { error } = await sb.from('reviews').insert([review]);
   if (error) {
     console.error('Error submitting review:', error);
     alert('Пікірді жіберу кезінде қате пайда болды');
@@ -105,7 +105,7 @@ async function submitReview(event) {
 
 async function loadStatistics() {
   const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = supabase.from('reviews').select('answers, department_id, departments(name)');
+  let query = sb.from('reviews').select('answers, department_id, departments(name)');
   if (departmentFilter) {
     query = query.eq('department_id', departmentFilter);
   }
