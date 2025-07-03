@@ -8,13 +8,14 @@ const sb = supabase.createClient(
 );
 
 async function loadDepartments() {
-  const { data, error } = await sb.from('departments').select('*');
+  const { data, error } = await supabase.from('departments').select('*');
   if (error) {
     console.error('Error loading departments:', error);
     return;
   }
   const departmentSelect = document.getElementById('department');
   const departmentFilter = document.getElementById('departmentFilter');
+  
   data.forEach(dept => {
     const option = document.createElement('option');
     option.value = dept.id;
@@ -23,16 +24,19 @@ async function loadDepartments() {
     if (departmentFilter) departmentFilter.appendChild(option.cloneNode(true));
   });
 
+  // Переносим это сюда — после того как options добавлены
   const urlParams = new URLSearchParams(window.location.search);
   const deptId = urlParams.get('dept');
-  console.log('deptId:', deptId); // Отладка
+  console.log('deptId:', deptId);
+
   if (deptId && departmentSelect) {
     departmentSelect.value = deptId;
     loadDoctors(deptId);
     loadNurses(deptId);
-    departmentSelect.disabled = true; // Только если хочешь запретить менять
+    departmentSelect.disabled = true; // Если нужно заблокировать выбор
   }
 }
+
 
 async function loadDoctors(departmentId) {
   const { data, error } = await sb
