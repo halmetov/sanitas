@@ -8,7 +8,7 @@ const sb = Supabase.createClient(
 );
 
 async function loadDepartments() {
-  const { data, error } = await supabase.from('departments').select('*');
+  const { data, error } = await sb.from('departments').select('*');
   if (error) {
     console.error('Error loading departments:', error);
     return;
