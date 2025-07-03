@@ -28,9 +28,9 @@ async function loadDepartments() {
   console.log('deptId:', deptId); // Отладка
   if (deptId && departmentSelect) {
     departmentSelect.value = deptId;
-    departmentSelect.disabled = true;
     loadDoctors(deptId);
     loadNurses(deptId);
+    departmentSelect.disabled = true; // Только если хочешь запретить менять
   }
 }
 
