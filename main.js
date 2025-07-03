@@ -107,9 +107,12 @@ async function submitReview(event) {
   }
 }
 
+
+let chart;
+
 async function loadStatistics() {
   const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = sb.from('reviews').select('answers, department_id, departments(name)');
+  let query = sb.from('reviews').select('answers, department_id, departments(name), doctors(name), doctor_id');
   if (departmentFilter) {
     query = query.eq('department_id', departmentFilter);
   }
@@ -119,31 +122,89 @@ async function loadStatistics() {
     return;
   }
 
+  // Очищаем
   const statsDiv = document.getElementById('stats');
-  statsDiv.innerHTML = '';
+  statsDiv.innerHTML = '<canvas id="chart"></canvas>';
 
   const questionLabels = [
-    'Қызметкерлердің сыпайылығы мен қарым-қатынасы',
-    'Көрсетілген қызметтің сапасы',
+    'Сыпайылық пен қарым-қатынас',
+    'Қызмет сапасы',
     'Қызмет көрсету жылдамдығы',
     'Ақпараттың түсініктілігі',
-    'Қызметкерлердің кәсіби деңгейі',
-    'Мекеме тазалығы мен жайлылығы',
-    'Жалпы қанағаттану деңгейі',
+    'Кәсіби деңгей',
+    'Тазалық пен жайлылық',
+    'Жалпы қанағаттану'
   ];
-
   const maxScores = [5, 5, 3, 3, 5, 3, 5];
-  questionLabels.forEach((label, i) => {
-    const scores = data.map(review => review.answers[`q${i + 1}`]);
-    const avgScore = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : '0.00';
-    const statDiv = document.createElement('div');
-    statDiv.className = 'stat';
-    statDiv.innerHTML = `
-      <h3>${label}</h3>
-      <p>Орташа баға: ${avgScore} / ${maxScores[i]}</p>
-      <p>Пікірлер саны: ${scores.length}</p>
+
+  // Если фильтр по одному отделению
+  if (departmentFilter) {
+    // Статистика по врачам
+    const doctorMap = {};
+
+    data.forEach(review => {
+      const doctorId = review.doctor_id || 'Басқа';
+      if (!doctorMap[doctorId]) {
+        doctorMap[doctorId] = { count: 0, sum: 0, name: review.doctors?.name || 'Аноним' };
+      }
+      const totalScore = Object.values(review.answers).reduce((a, b) => a + b, 0);
+      doctorMap[doctorId].sum += totalScore;
+      doctorMap[doctorId].count++;
+    });
+
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.innerHTML = `
+      <tr>
+        <th style="border:1px solid #ccc; padding:5px;">Дәрігер</th>
+        <th style="border:1px solid #ccc; padding:5px;">Орташа баға</th>
+        <th style="border:1px solid #ccc; padding:5px;">Пікірлер саны</th>
+      </tr>
     `;
-    statsDiv.appendChild(statDiv);
+
+    Object.values(doctorMap).forEach(doc => {
+      const avg = doc.count ? (doc.sum / doc.count / 7).toFixed(2) : '0.00';
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td style="border:1px solid #ccc; padding:5px;">${doc.name}</td>
+        <td style="border:1px solid #ccc; padding:5px;">${avg}</td>
+        <td style="border:1px solid #ccc; padding:5px;">${doc.count}</td>
+      `;
+      table.appendChild(row);
+    });
+
+    statsDiv.appendChild(table);
+  }
+
+  // Статистика по вопросам
+  const averages = questionLabels.map((label, i) => {
+    const scores = data.map(review => review.answers[`q${i + 1}`]);
+    const avg = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 0;
+    return avg;
+  });
+
+  // Рисуем график
+  const ctx = document.getElementById('chart').getContext('2d');
+  if (chart) chart.destroy(); // удаляем старый
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: questionLabels,
+      datasets: [{
+        label: 'Орташа баға',
+        data: averages,
+        backgroundColor: '#3e95cd',
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 5
+        }
+      }
+    }
   });
 }
 

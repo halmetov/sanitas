@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Пікірлер статистикасы</title>
   <link rel="stylesheet" href="statistic.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
@@ -13,7 +14,9 @@
     <select id="departmentFilter">
       <option value="">Барлық бөлімшелер</option>
     </select>
-    <div id="stats"></div>
+    <div id="stats">
+      <canvas id="chart"></canvas>
+    </div>
   </div>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="main.js"></script>
