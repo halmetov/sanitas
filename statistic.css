@@ -3,67 +3,97 @@ body {
   background-color: #f4f4f4;
   margin: 0;
   padding: 0;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   height: 100vh;
 }
 
-.container {
-  max-width: 400px;
-  margin: 100px auto;
+.login-form {
   background: white;
   padding: 30px;
   border-radius: 10px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 300px;
+}
+
+.login-form h2 {
+  margin: 0;
+  text-align: center;
+}
+
+.login-form input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.login-form button {
+  background-color: #28a745;
+  color: white;
+  padding: 12px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.login-form button:hover {
+  background-color: #218838;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
   text-align: center;
   color: #333;
-  margin-bottom: 20px;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-}
-
-label {
-  margin: 10px 0 5px;
-  font-weight: bold;
-}
-
-input[type="text"],
-input[type="password"] {
-  padding: 12px;
+select {
+  padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  margin-bottom: 20px;
+  width: 100%;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus {
-  border-color: #007bff;
-  outline: none;
+#stats {
+  margin-bottom: 30px;
 }
 
-button {
-  background-color: #007bff;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  margin-top: 20px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.review-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
 }
 
-button:hover {
-  background-color: #0056b3;
+.review-card h3 {
+  margin-top: 0;
+  margin-bottom: 5px;
 }
 
-#error {
-  color: red;
-  text-align: center;
-  margin-top: 10px;
+.review-card p {
+  margin: 5px 0;
+}
+
+.review-card ul {
+  padding-left: 20px;
 }

@@ -3,27 +3,24 @@ const sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xieWp3dW5qenFzZmtlZXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDc0OTIsImV4cCI6MjA2NzAyMzQ5Mn0.1LH7fpYotFDJs6Pk0I-eDvowlsVJOCerl0uqiXFctqk'
 );
 
-document.getElementById('loginForm').addEventListener('submit', function(e) {
+let chart;
+
+document.getElementById('loginForm').addEventListener('submit', (e) => {
   e.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const errorEl = document.getElementById('loginError');
 
-  // Здесь указываешь свой логин и пароль
-  const validUsername = "admin";
-  const validPassword = "123456";
-
-  if (username === validUsername && password === validPassword) {
+  // Статичный логин/пароль
+  if (username === 'admin' && password === '123456') {
     document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('statsContainer').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'block';
     loadDepartments();
-    const departmentFilter = document.getElementById('departmentFilter');
-    departmentFilter.addEventListener('change', loadStatistics);
     loadStatistics();
   } else {
-    document.getElementById('error').textContent = "Қате логин немесе құпия сөз!";
+    errorEl.style.display = 'block';
   }
 });
-
 
 async function loadDepartments() {
   const { data, error } = await sb.from('departments').select('*');
@@ -32,6 +29,7 @@ async function loadDepartments() {
     return;
   }
   const departmentFilter = document.getElementById('departmentFilter');
+  departmentFilter.innerHTML = '<option value="">Барлық бөлімшелер</option>';
   data.forEach(dept => {
     const option = document.createElement('option');
     option.value = dept.id;
@@ -40,11 +38,9 @@ async function loadDepartments() {
   });
 }
 
-let chart;
-
 async function loadStatistics() {
   const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = sb.from('reviews').select('answers, department_id, doctor_id, doctors(name)');
+  let query = sb.from('reviews').select('*, departments(name), doctors(name), nurses(name)');
   if (departmentFilter) {
     query = query.eq('department_id', departmentFilter);
   }
@@ -54,9 +50,7 @@ async function loadStatistics() {
     return;
   }
 
-  const statsDiv = document.getElementById('stats');
-  statsDiv.innerHTML = '<canvas id="chart"></canvas>';
-
+  // Диаграмма
   const questionLabels = [
     'Сыпайылық пен қарым-қатынас',
     'Қызмет сапасы',
@@ -94,11 +88,32 @@ async function loadStatistics() {
       }
     }
   });
+
+  // Отзывы
+  const reviewsContainer = document.getElementById('reviewsContainer');
+  reviewsContainer.innerHTML = '';
+
+  data.forEach(review => {
+    const overallScore = (
+      Object.values(review.answers).reduce((a, b) => a + b, 0) / Object.values(review.answers).length
+    ).toFixed(2);
+
+    const card = document.createElement('div');
+    card.className = 'review-card';
+    card.innerHTML = `
+      <h3>${review.patient_name || 'Аноним'}</h3>
+      <p><strong>Телефон:</strong> ${review.patient_phone || 'Жоқ'}</p>
+      <p><strong>Бөлімше:</strong> ${review.departments?.name || '-'}</p>
+      <p><strong>Дәрігер:</strong> ${review.doctors?.name || '-'}</p>
+      <p><strong>Медбике:</strong> ${review.nurses?.name || '-'}</p>
+      <p><strong>Жалпы баға:</strong> ${overallScore}</p>
+      <p><strong>Сұрақтар:</strong></p>
+      <ul>
+        ${Object.entries(review.answers).map(([q, val]) => `<li>${q.toUpperCase()}: ${val}</li>`).join('')}
+      </ul>
+    `;
+    reviewsContainer.appendChild(card);
+  });
 }
 
-function initStatistics() {
-  loadDepartments();
-  const departmentFilter = document.getElementById('departmentFilter');
-  departmentFilter.addEventListener('change', loadStatistics);
-  loadStatistics();
-}
+document.getElementById('departmentFilter').addEventListener('change', loadStatistics);

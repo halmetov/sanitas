@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Пікірлер статистикасы</title>
-  <link rel="stylesheet" href="statistic.css">
+  <link rel="stylesheet" href="statistic.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="container" id="loginContainer">
-    <h1>Кіру</h1>
-    <form id="loginForm">
-      <label for="username">Логин:</label>
-      <input type="text" id="username" required>
-      <label for="password">Құпия сөз:</label>
-      <input type="password" id="password" required>
+  <!-- Форма входа -->
+  <div class="login-container" id="loginContainer">
+    <form id="loginForm" class="login-form">
+      <h2>Кіру</h2>
+      <input type="text" id="username" placeholder="Логин" required />
+      <input type="password" id="password" placeholder="Құпия сөз" required />
       <button type="submit">Кіру</button>
+      <p id="loginError" style="color:red; display:none;">Қате логин немесе құпия сөз</p>
     </form>
-    <p id="error" style="color: red;"></p>
   </div>
 
-  <div class="container" id="statsContainer" style="display: none;">
+  <!-- Основная часть статистики -->
+  <div class="container" id="mainContent" style="display: none;">
     <h1>Пікірлер статистикасы</h1>
     <label for="departmentFilter">Бөлімше:</label>
     <select id="departmentFilter">
@@ -29,6 +29,7 @@
     <div id="stats">
       <canvas id="chart"></canvas>
     </div>
+    <div id="reviewsContainer"></div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
