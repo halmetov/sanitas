@@ -214,5 +214,6 @@ async function loadStatistics() {
     // Добавляем карточку в контейнер
     reviewsDiv.appendChild(card);
   });
+  }
 
 document.getElementById('departmentFilter').addEventListener('change', loadStatistics);
