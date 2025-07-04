@@ -22,7 +22,6 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
   }
 });
 
-
 function getAnswerText(questionNumber, value) {
   const texts = {
     q1: {
@@ -72,7 +71,6 @@ function getAnswerText(questionNumber, value) {
 
   return texts[questionNumber]?.[value] || value;
 }
-
 
 async function loadDepartments() {
   const { data, error } = await sb.from('departments').select('*');
@@ -201,7 +199,6 @@ async function loadStatistics() {
       }
     });
 
-    // Добавляем все элементы в карточку
     card.appendChild(h3);
     card.appendChild(pDepartment);
     card.appendChild(pDoctor);
@@ -211,9 +208,8 @@ async function loadStatistics() {
     card.appendChild(button);
     card.appendChild(detailsDiv);
 
-    // Добавляем карточку в контейнер
     reviewsDiv.appendChild(card);
   });
-  }
+} // ← ЗАКРЫВАЕТ функцию loadStatistics
 
 document.getElementById('departmentFilter').addEventListener('change', loadStatistics);
