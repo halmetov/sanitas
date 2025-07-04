@@ -101,7 +101,8 @@ function generateStars(score) {
 
 async function loadStatistics() {
   const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = sb.from('reviews').select('*, departments(name), doctors(name), nurses(name)');
+  let query = sb.from('reviews').select('answers, department_id, patient_name, patient_phone, doctor_id, nurse_id, departments(name), doctors(name), nurses(name), doctor_rating, nurse_rating');
+
   if (departmentFilter) {
     query = query.eq('department_id', departmentFilter);
   }
@@ -151,47 +152,45 @@ async function loadStatistics() {
   });
 
   // Отзывы
-  const reviewsContainer = document.getElementById('reviewsContainer');
-  reviewsContainer.innerHTML = '';
-
-  data.forEach((review, index) => {
-    const overallScore = (
-      Object.values(review.answers).reduce((a, b) => a + b, 0) / Object.values(review.answers).length
-    ).toFixed(2);
-
-    const stars = generateStars(overallScore);
-
+  const reviewsDiv = document.getElementById('reviews');
+  data.forEach(review => {
     const card = document.createElement('div');
-    card.className = 'review-card';
+    card.classList.add('review-card');
+
+    const starRating = '★'.repeat(review.rating || 0) + '☆'.repeat(5 - (review.rating || 0));
+
+    const detailsDiv = document.createElement('div');
+    detailsDiv.classList.add('details');
+    detailsDiv.style.display = 'none';
+    detailsDiv.innerHTML = `
+      <ul>
+        ${Object.entries(review.answers).map(([q, val]) => `<li><strong>${q.toUpperCase()}:</strong> ${getAnswerText(q, val)}</li>`).join('')}
+      </ul>
+    `;
+
+    const button = document.createElement('button');
+    button.textContent = 'Подробнее';
+    button.addEventListener('click', () => {
+      if (detailsDiv.style.display === 'none') {
+        detailsDiv.style.display = 'block';
+        button.textContent = 'Скрыть';
+      } else {
+        detailsDiv.style.display = 'none';
+        button.textContent = 'Подробнее';
+      }
+    });
+
     card.innerHTML = `
-      <h3>${review.patient_name || 'Аноним'}</h3>
-      <p><strong>Телефон:</strong> ${review.patient_phone || 'Жоқ'}</p>
+      <h3>${review.patient_name} (${review.patient_phone})</h3>
       <p><strong>Бөлімше:</strong> ${review.departments?.name || '-'}</p>
       <p><strong>Дәрігер:</strong> ${review.doctors?.name || '-'}</p>
       <p><strong>Медбике:</strong> ${review.nurses?.name || '-'}</p>
-      <p><strong>Жалпы баға:</strong> ${overallScore} ${stars}</p>
-      <button id="toggleBtn${index}">Подробнее</button>
-      <div id="answers${index}" style="display:none; margin-top:10px;">
-        <p><strong>Сұрақтар:</strong></p>
-        <ul>
-          ${Object.entries(review.answers).map(([q, val]) => `<li><strong>${q.toUpperCase()}:</strong> ${getAnswerText(q, val)}</li>`).join('')}
-        </ul>
-      </div>
+      <p><strong>Баға:</strong> ${starRating}</p>
     `;
-    reviewsContainer.appendChild(card);
+    card.appendChild(button);
+    card.appendChild(detailsDiv);
 
-    // Добавляем обработчик кнопки
-    const toggleBtn = document.getElementById(`toggleBtn${index}`);
-    const answersDiv = document.getElementById(`answers${index}`);
-    toggleBtn.addEventListener('click', () => {
-      if (answersDiv.style.display === 'none') {
-        answersDiv.style.display = 'block';
-        toggleBtn.textContent = 'Скрыть';
-      } else {
-        answersDiv.style.display = 'none';
-        toggleBtn.textContent = 'Подробнее';
-      }
-    });
+    reviewsDiv.appendChild(card);
   });
 }
 
