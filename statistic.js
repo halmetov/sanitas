@@ -153,13 +153,34 @@ async function loadStatistics() {
 
   // Отзывы
   const reviewsDiv = document.getElementById('reviewsContainer');
-  reviewsDiv.innerHTML = '';
+  reviewsDiv.innerHTML = ''; // Очистка
+
   data.forEach(review => {
     const card = document.createElement('div');
     card.classList.add('review-card');
 
+    const h3 = document.createElement('h3');
+    h3.textContent = `${review.patient_name || 'Аноним'} (${review.patient_phone || 'Жоқ'})`;
+
+    const pDepartment = document.createElement('p');
+    pDepartment.innerHTML = `<strong>Бөлімше:</strong> ${review.departments?.name || '-'}`;
+
+    const pDoctor = document.createElement('p');
+    pDoctor.innerHTML = `<strong>Дәрігер:</strong> ${review.doctors?.name || '-'}`;
+
     const doctorStars = '★'.repeat(review.doctor_rating || 0) + '☆'.repeat(5 - (review.doctor_rating || 0));
+    const pDoctorRating = document.createElement('p');
+    pDoctorRating.innerHTML = `<strong>Дәрігердің бағасы:</strong> ${doctorStars}`;
+
+    const pNurse = document.createElement('p');
+    pNurse.innerHTML = `<strong>Медбике:</strong> ${review.nurses?.name || '-'}`;
+
     const nurseStars = '★'.repeat(review.nurse_rating || 0) + '☆'.repeat(5 - (review.nurse_rating || 0));
+    const pNurseRating = document.createElement('p');
+    pNurseRating.innerHTML = `<strong>Медбикенің бағасы:</strong> ${nurseStars}`;
+
+    const button = document.createElement('button');
+    button.textContent = 'Подробнее';
 
     const detailsDiv = document.createElement('div');
     detailsDiv.classList.add('details');
@@ -170,8 +191,6 @@ async function loadStatistics() {
       </ul>
     `;
 
-    const button = document.createElement('button');
-    button.textContent = 'Подробнее';
     button.addEventListener('click', () => {
       if (detailsDiv.style.display === 'none') {
         detailsDiv.style.display = 'block';
@@ -182,19 +201,18 @@ async function loadStatistics() {
       }
     });
 
-    card.innerHTML = `
-      <h3>${review.patient_name || 'Аноним'} (${review.patient_phone || 'Жоқ'})</h3>
-      <p><strong>Бөлімше:</strong> ${review.departments?.name || '-'}</p>
-      <p><strong>Дәрігер:</strong> ${review.doctors?.name || '-'}</p>
-      <p><strong>Дәрігердің бағасы:</strong> ${doctorStars}</p>
-      <p><strong>Медбике:</strong> ${review.nurses?.name || '-'}</p>
-      <p><strong>Медбикенің бағасы:</strong> ${nurseStars}</p>
-    `;
+    // Добавляем все элементы в карточку
+    card.appendChild(h3);
+    card.appendChild(pDepartment);
+    card.appendChild(pDoctor);
+    card.appendChild(pDoctorRating);
+    card.appendChild(pNurse);
+    card.appendChild(pNurseRating);
     card.appendChild(button);
     card.appendChild(detailsDiv);
 
+    // Добавляем карточку в контейнер
     reviewsDiv.appendChild(card);
   });
-}
 
 document.getElementById('departmentFilter').addEventListener('change', loadStatistics);
