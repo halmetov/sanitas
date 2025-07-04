@@ -3,21 +3,27 @@ const sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xieWp3dW5qenFzZmtlZXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDc0OTIsImV4cCI6MjA2NzAyMzQ5Mn0.1LH7fpYotFDJs6Pk0I-eDvowlsVJOCerl0uqiXFctqk'
 );
 
-const correctUsername = 'admin';
-const correctPassword = '12345';
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
 
-document.getElementById('loginBtn').addEventListener('click', () => {
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
+  // Здесь указываешь свой логин и пароль
+  const validUsername = "admin";
+  const validPassword = "123456";
 
-  if (username === correctUsername && password === correctPassword) {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('content').style.display = 'block';
-    initStatistics();
+  if (username === validUsername && password === validPassword) {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('statsContainer').style.display = 'block';
+    loadDepartments();
+    const departmentFilter = document.getElementById('departmentFilter');
+    departmentFilter.addEventListener('change', loadStatistics);
+    loadStatistics();
   } else {
-    alert('Қате логин немесе құпия сөз!');
+    document.getElementById('error').textContent = "Қате логин немесе құпия сөз!";
   }
 });
+
 
 async function loadDepartments() {
   const { data, error } = await sb.from('departments').select('*');

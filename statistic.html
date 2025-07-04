@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Пікірлер статистикасы</title>
-  <link rel="stylesheet" href="statistic.css" />
+  <link rel="stylesheet" href="statistic.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div id="loginForm" class="login-container">
-    <h2>Кіру</h2>
-    <input type="text" id="loginUsername" placeholder="Логин" />
-    <input type="password" id="loginPassword" placeholder="Құпия сөз" />
-    <button id="loginBtn">Кіру</button>
+  <div class="container" id="loginContainer">
+    <h1>Кіру</h1>
+    <form id="loginForm">
+      <label for="username">Логин:</label>
+      <input type="text" id="username" required>
+      <label for="password">Құпия сөз:</label>
+      <input type="password" id="password" required>
+      <button type="submit">Кіру</button>
+    </form>
+    <p id="error" style="color: red;"></p>
   </div>
 
-  <div id="content" style="display: none;">
-    <div class="container">
-      <h1>Пікірлер статистикасы</h1>
-      <label for="departmentFilter">Бөлімше:</label>
-      <select id="departmentFilter">
-        <option value="">Барлық бөлімшелер</option>
-      </select>
-      <div id="stats">
-        <canvas id="chart"></canvas>
-      </div>
+  <div class="container" id="statsContainer" style="display: none;">
+    <h1>Пікірлер статистикасы</h1>
+    <label for="departmentFilter">Бөлімше:</label>
+    <select id="departmentFilter">
+      <option value="">Барлық бөлімшелер</option>
+    </select>
+    <div id="stats">
+      <canvas id="chart"></canvas>
     </div>
   </div>
 
