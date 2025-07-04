@@ -3,24 +3,56 @@ const sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xieWp3dW5qenFzZmtlZXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDc0OTIsImV4cCI6MjA2NzAyMzQ5Mn0.1LH7fpYotFDJs6Pk0I-eDvowlsVJOCerl0uqiXFctqk'
 );
 
+function getAnswerText(q, val) {
+  const texts = {
+    q1: {
+      5: 'Өте риза болдым',
+      4: 'Риза болдым',
+      3: 'Орташа',
+      2: 'Риза болмадым',
+      1: 'Мүлде риза болмадым'
+    },
+    q2: {
+      5: 'Өте жақсы',
+      4: 'Жақсы',
+      3: 'Қанағаттанарлық',
+      2: 'Нашар',
+      1: 'Өте нашар'
+    },
+    q3: {
+      3: 'Иә, толық қанағаттандырды',
+      2: 'Жартылай қанағаттандырды',
+      1: 'Жоқ, қанағаттандырмады'
+    },
+    q4: {
+      3: 'Иә, толық түсінікті',
+      2: 'Жартылай түсінікті',
+      1: 'Мүлде түсініксіз'
+    },
+    q5: {
+      5: 'Өте жоғары',
+      4: 'Жоғары',
+      3: 'Орташа',
+      2: 'Төмен',
+      1: 'Өте төмен'
+    },
+    q6: {
+      3: 'Иә, толық қанағаттандырды',
+      2: 'Жартылай қанағаттандырды',
+      1: 'Жоқ, қанағаттандырмады'
+    },
+    q7: {
+      5: 'Өте риза болдым',
+      4: 'Риза болдым',
+      3: 'Орташа',
+      2: 'Риза болмадым',
+      1: 'Мүлде риза болмадым'
+    }
+  };
+  return texts[q]?.[val] || val;
+}
+
 let chart;
-
-document.getElementById('loginForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  const errorEl = document.getElementById('loginError');
-
-  // Статичный логин/пароль
-  if (username === 'admin' && password === '123456') {
-    document.getElementById('loginContainer').style.display = 'none';
-    document.getElementById('mainContent').style.display = 'block';
-    loadDepartments();
-    loadStatistics();
-  } else {
-    errorEl.style.display = 'block';
-  }
-});
 
 async function loadDepartments() {
   const { data, error } = await sb.from('departments').select('*');
@@ -29,7 +61,6 @@ async function loadDepartments() {
     return;
   }
   const departmentFilter = document.getElementById('departmentFilter');
-  departmentFilter.innerHTML = '<option value="">Барлық бөлімшелер</option>';
   data.forEach(dept => {
     const option = document.createElement('option');
     option.value = dept.id;
@@ -40,7 +71,7 @@ async function loadDepartments() {
 
 async function loadStatistics() {
   const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = sb.from('reviews').select('*, departments(name), doctors(name), nurses(name)');
+  let query = sb.from('reviews').select('answers, department_id, patient_name, patient_phone, doctor_id, nurse_id, departments(name), doctors(name), nurses(name), rating');
   if (departmentFilter) {
     query = query.eq('department_id', departmentFilter);
   }
@@ -50,7 +81,9 @@ async function loadStatistics() {
     return;
   }
 
-  // Диаграмма
+  const statsDiv = document.getElementById('stats');
+  statsDiv.innerHTML = '<canvas id="chart"></canvas><div id="reviews"></div>';
+
   const questionLabels = [
     'Сыпайылық пен қарым-қатынас',
     'Қызмет сапасы',
@@ -61,6 +94,7 @@ async function loadStatistics() {
     'Жалпы қанағаттану'
   ];
 
+  // Статистика по вопросам
   const averages = questionLabels.map((_, i) => {
     const scores = data.map(review => review.answers[`q${i + 1}`]);
     const avg = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 0;
@@ -90,30 +124,53 @@ async function loadStatistics() {
   });
 
   // Отзывы
-  const reviewsContainer = document.getElementById('reviewsContainer');
-  reviewsContainer.innerHTML = '';
-
+  const reviewsDiv = document.getElementById('reviews');
   data.forEach(review => {
-    const overallScore = (
-      Object.values(review.answers).reduce((a, b) => a + b, 0) / Object.values(review.answers).length
-    ).toFixed(2);
-
     const card = document.createElement('div');
-    card.className = 'review-card';
+    card.classList.add('review-card');
+
+    const starRating = '★'.repeat(review.rating || 0) + '☆'.repeat(5 - (review.rating || 0));
+
+    const detailsDiv = document.createElement('div');
+    detailsDiv.classList.add('details');
+    detailsDiv.style.display = 'none';
+    detailsDiv.innerHTML = `
+      <ul>
+        ${Object.entries(review.answers).map(([q, val]) => `<li><strong>${q.toUpperCase()}:</strong> ${getAnswerText(q, val)}</li>`).join('')}
+      </ul>
+    `;
+
+    const button = document.createElement('button');
+    button.textContent = 'Подробнее';
+    button.addEventListener('click', () => {
+      if (detailsDiv.style.display === 'none') {
+        detailsDiv.style.display = 'block';
+        button.textContent = 'Скрыть';
+      } else {
+        detailsDiv.style.display = 'none';
+        button.textContent = 'Подробнее';
+      }
+    });
+
     card.innerHTML = `
-      <h3>${review.patient_name || 'Аноним'}</h3>
-      <p><strong>Телефон:</strong> ${review.patient_phone || 'Жоқ'}</p>
+      <h3>${review.patient_name} (${review.patient_phone})</h3>
       <p><strong>Бөлімше:</strong> ${review.departments?.name || '-'}</p>
       <p><strong>Дәрігер:</strong> ${review.doctors?.name || '-'}</p>
       <p><strong>Медбике:</strong> ${review.nurses?.name || '-'}</p>
-      <p><strong>Жалпы баға:</strong> ${overallScore}</p>
-      <p><strong>Сұрақтар:</strong></p>
-      <ul>
-        ${Object.entries(review.answers).map(([q, val]) => `<li>${q.toUpperCase()}: ${val}</li>`).join('')}
-      </ul>
+      <p><strong>Баға:</strong> ${starRating}</p>
     `;
-    reviewsContainer.appendChild(card);
+    card.appendChild(button);
+    card.appendChild(detailsDiv);
+
+    reviewsDiv.appendChild(card);
   });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadDepartments();
+  const departmentFilter = document.getElementById('departmentFilter');
+  departmentFilter.addEventListener('change', loadStatistics);
+  loadStatistics();
+});
 
 document.getElementById('departmentFilter').addEventListener('change', loadStatistics);
