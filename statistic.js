@@ -3,7 +3,27 @@ const sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xieWp3dW5qenFzZmtlZXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDc0OTIsImV4cCI6MjA2NzAyMzQ5Mn0.1LH7fpYotFDJs6Pk0I-eDvowlsVJOCerl0uqiXFctqk'
 );
 
-function getAnswerText(q, val) {
+let chart;
+
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const errorEl = document.getElementById('loginError');
+
+  // Статичный логин/пароль
+  if (username === 'admin' && password === '123456') {
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    loadDepartments();
+    loadStatistics();
+  } else {
+    errorEl.style.display = 'block';
+  }
+});
+
+
+function getAnswerText(questionNumber, value) {
   const texts = {
     q1: {
       5: 'Өте риза болдым',
@@ -49,10 +69,10 @@ function getAnswerText(q, val) {
       1: 'Мүлде риза болмадым'
     }
   };
-  return texts[q]?.[val] || val;
+
+  return texts[questionNumber]?.[value] || value;
 }
 
-let chart;
 
 async function loadDepartments() {
   const { data, error } = await sb.from('departments').select('*');
@@ -61,6 +81,7 @@ async function loadDepartments() {
     return;
   }
   const departmentFilter = document.getElementById('departmentFilter');
+  departmentFilter.innerHTML = '<option value="">Барлық бөлімшелер</option>';
   data.forEach(dept => {
     const option = document.createElement('option');
     option.value = dept.id;
@@ -69,9 +90,18 @@ async function loadDepartments() {
   });
 }
 
+function generateStars(score) {
+  const rounded = Math.round(score);
+  let stars = '';
+  for (let i = 1; i <= 5; i++) {
+    stars += i <= rounded ? '⭐' : '☆';
+  }
+  return stars;
+}
+
 async function loadStatistics() {
   const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = sb.from('reviews').select('answers, department_id, patient_name, patient_phone, doctor_id, nurse_id, departments(name), doctors(name), nurses(name), rating');
+  let query = sb.from('reviews').select('*, departments(name), doctors(name), nurses(name)');
   if (departmentFilter) {
     query = query.eq('department_id', departmentFilter);
   }
@@ -81,9 +111,7 @@ async function loadStatistics() {
     return;
   }
 
-  const statsDiv = document.getElementById('stats');
-  statsDiv.innerHTML = '<canvas id="chart"></canvas><div id="reviews"></div>';
-
+  // Диаграмма
   const questionLabels = [
     'Сыпайылық пен қарым-қатынас',
     'Қызмет сапасы',
@@ -94,7 +122,6 @@ async function loadStatistics() {
     'Жалпы қанағаттану'
   ];
 
-  // Статистика по вопросам
   const averages = questionLabels.map((_, i) => {
     const scores = data.map(review => review.answers[`q${i + 1}`]);
     const avg = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 0;
@@ -124,53 +151,48 @@ async function loadStatistics() {
   });
 
   // Отзывы
-  const reviewsDiv = document.getElementById('reviews');
-  data.forEach(review => {
+  const reviewsContainer = document.getElementById('reviewsContainer');
+  reviewsContainer.innerHTML = '';
+
+  data.forEach((review, index) => {
+    const overallScore = (
+      Object.values(review.answers).reduce((a, b) => a + b, 0) / Object.values(review.answers).length
+    ).toFixed(2);
+
+    const stars = generateStars(overallScore);
+
     const card = document.createElement('div');
-    card.classList.add('review-card');
-
-    const starRating = '★'.repeat(review.rating || 0) + '☆'.repeat(5 - (review.rating || 0));
-
-    const detailsDiv = document.createElement('div');
-    detailsDiv.classList.add('details');
-    detailsDiv.style.display = 'none';
-    detailsDiv.innerHTML = `
-      <ul>
-        ${Object.entries(review.answers).map(([q, val]) => `<li><strong>${q.toUpperCase()}:</strong> ${getAnswerText(q, val)}</li>`).join('')}
-      </ul>
-    `;
-
-    const button = document.createElement('button');
-    button.textContent = 'Подробнее';
-    button.addEventListener('click', () => {
-      if (detailsDiv.style.display === 'none') {
-        detailsDiv.style.display = 'block';
-        button.textContent = 'Скрыть';
-      } else {
-        detailsDiv.style.display = 'none';
-        button.textContent = 'Подробнее';
-      }
-    });
-
+    card.className = 'review-card';
     card.innerHTML = `
-      <h3>${review.patient_name} (${review.patient_phone})</h3>
+      <h3>${review.patient_name || 'Аноним'}</h3>
+      <p><strong>Телефон:</strong> ${review.patient_phone || 'Жоқ'}</p>
       <p><strong>Бөлімше:</strong> ${review.departments?.name || '-'}</p>
       <p><strong>Дәрігер:</strong> ${review.doctors?.name || '-'}</p>
       <p><strong>Медбике:</strong> ${review.nurses?.name || '-'}</p>
-      <p><strong>Баға:</strong> ${starRating}</p>
+      <p><strong>Жалпы баға:</strong> ${overallScore} ${stars}</p>
+      <button id="toggleBtn${index}">Подробнее</button>
+      <div id="answers${index}" style="display:none; margin-top:10px;">
+        <p><strong>Сұрақтар:</strong></p>
+        <ul>
+          ${Object.entries(review.answers).map(([q, val]) => `<li><strong>${q.toUpperCase()}:</strong> ${getAnswerText(q, val)}</li>`).join('')}
+        </ul>
+      </div>
     `;
-    card.appendChild(button);
-    card.appendChild(detailsDiv);
+    reviewsContainer.appendChild(card);
 
-    reviewsDiv.appendChild(card);
+    // Добавляем обработчик кнопки
+    const toggleBtn = document.getElementById(`toggleBtn${index}`);
+    const answersDiv = document.getElementById(`answers${index}`);
+    toggleBtn.addEventListener('click', () => {
+      if (answersDiv.style.display === 'none') {
+        answersDiv.style.display = 'block';
+        toggleBtn.textContent = 'Скрыть';
+      } else {
+        answersDiv.style.display = 'none';
+        toggleBtn.textContent = 'Подробнее';
+      }
+    });
   });
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadDepartments();
-  const departmentFilter = document.getElementById('departmentFilter');
-  departmentFilter.addEventListener('change', loadStatistics);
-  loadStatistics();
-});
 
 document.getElementById('departmentFilter').addEventListener('change', loadStatistics);
