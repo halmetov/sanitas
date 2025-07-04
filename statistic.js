@@ -157,7 +157,8 @@ async function loadStatistics() {
     const card = document.createElement('div');
     card.classList.add('review-card');
 
-    const starRating = '★'.repeat(review.rating || 0) + '☆'.repeat(5 - (review.rating || 0));
+    const doctorStars = '★'.repeat(review.doctor_rating || 0) + '☆'.repeat(5 - (review.doctor_rating || 0));
+    const nurseStars = '★'.repeat(review.nurse_rating || 0) + '☆'.repeat(5 - (review.nurse_rating || 0));
 
     const detailsDiv = document.createElement('div');
     detailsDiv.classList.add('details');
@@ -181,11 +182,12 @@ async function loadStatistics() {
     });
 
     card.innerHTML = `
-      <h3>${review.patient_name} (${review.patient_phone})</h3>
+      <h3>${review.patient_name || 'Аноним'} (${review.patient_phone || 'Жоқ'})</h3>
       <p><strong>Бөлімше:</strong> ${review.departments?.name || '-'}</p>
       <p><strong>Дәрігер:</strong> ${review.doctors?.name || '-'}</p>
+      <p><strong>Дәрігердің бағасы:</strong> ${doctorStars}</p>
       <p><strong>Медбике:</strong> ${review.nurses?.name || '-'}</p>
-      <p><strong>Баға:</strong> ${starRating}</p>
+      <p><strong>Медбикенің бағасы:</strong> ${nurseStars}</p>
     `;
     card.appendChild(button);
     card.appendChild(detailsDiv);
