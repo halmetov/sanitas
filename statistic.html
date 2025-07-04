@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Пікірлер статистикасы</title>
-  <link rel="stylesheet" href="statistic.css">
+  <link rel="stylesheet" href="statistic.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Пікірлер статистикасы</h1>
-    <label for="departmentFilter">Бөлімше:</label>
-    <select id="departmentFilter">
-      <option value="">Барлық бөлімшелер</option>
-    </select>
-    <div id="stats">
-      <canvas id="chart"></canvas>
+  <div id="loginForm" class="login-container">
+    <h2>Кіру</h2>
+    <input type="text" id="loginUsername" placeholder="Логин" />
+    <input type="password" id="loginPassword" placeholder="Құпия сөз" />
+    <button id="loginBtn">Кіру</button>
+  </div>
+
+  <div id="content" style="display: none;">
+    <div class="container">
+      <h1>Пікірлер статистикасы</h1>
+      <label for="departmentFilter">Бөлімше:</label>
+      <select id="departmentFilter">
+        <option value="">Барлық бөлімшелер</option>
+      </select>
+      <div id="stats">
+        <canvas id="chart"></canvas>
+      </div>
     </div>
   </div>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="statistic.js"></script>
 </body>

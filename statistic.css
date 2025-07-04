@@ -33,14 +33,22 @@ select {
   gap: 20px;
 }
 
-.stat {
-  margin-bottom: 20px;
+.login-container {
+  max-width: 300px;
+  margin: 100px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.stat h3 {
-  margin: 0 0 10px;
+.login-container h2 {
+  text-align: center;
 }
 
-.stat p {
-  margin: 5px 0;
+.login-container input, .login-container button {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 16px;
 }

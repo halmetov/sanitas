@@ -3,6 +3,22 @@ const sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xieWp3dW5qenFzZmtlZXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE0NDc0OTIsImV4cCI6MjA2NzAyMzQ5Mn0.1LH7fpYotFDJs6Pk0I-eDvowlsVJOCerl0uqiXFctqk'
 );
 
+const correctUsername = 'admin';
+const correctPassword = '12345';
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+
+  if (username === correctUsername && password === correctPassword) {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    initStatistics();
+  } else {
+    alert('Қате логин немесе құпия сөз!');
+  }
+});
+
 async function loadDepartments() {
   const { data, error } = await sb.from('departments').select('*');
   if (error) {
@@ -45,7 +61,6 @@ async function loadStatistics() {
     'Жалпы қанағаттану'
   ];
 
-  // Статистика по вопросам
   const averages = questionLabels.map((_, i) => {
     const scores = data.map(review => review.answers[`q${i + 1}`]);
     const avg = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 0;
@@ -73,49 +88,11 @@ async function loadStatistics() {
       }
     }
   });
-
-  // Если выбрано одно отделение — показываем таблицу врачей
-  if (departmentFilter) {
-    const doctorMap = {};
-    data.forEach(review => {
-      const doctorId = review.doctor_id || 'Басқа';
-      if (!doctorMap[doctorId]) {
-        doctorMap[doctorId] = { count: 0, sum: 0, name: review.doctors?.name || 'Аноним' };
-      }
-      const totalScore = Object.values(review.answers).reduce((a, b) => a + b, 0);
-      doctorMap[doctorId].sum += totalScore;
-      doctorMap[doctorId].count++;
-    });
-
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
-    table.innerHTML = `
-      <tr>
-        <th style="border:1px solid #ccc; padding:5px;">Дәрігер</th>
-        <th style="border:1px solid #ccc; padding:5px;">Орташа баға</th>
-        <th style="border:1px solid #ccc; padding:5px;">Пікірлер саны</th>
-      </tr>
-    `;
-
-    Object.values(doctorMap).forEach(doc => {
-      const avg = doc.count ? (doc.sum / doc.count / 7).toFixed(2) : '0.00';
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td style="border:1px solid #ccc; padding:5px;">${doc.name}</td>
-        <td style="border:1px solid #ccc; padding:5px;">${avg}</td>
-        <td style="border:1px solid #ccc; padding:5px;">${doc.count}</td>
-      `;
-      table.appendChild(row);
-    });
-
-    statsDiv.appendChild(table);
-  }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initStatistics() {
   loadDepartments();
   const departmentFilter = document.getElementById('departmentFilter');
   departmentFilter.addEventListener('change', loadStatistics);
   loadStatistics();
-});
+}
