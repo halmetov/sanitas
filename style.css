@@ -70,3 +70,13 @@ button:hover {
 .question input[type="radio"] {
   margin-right: 10px;
 }
+
+.stars {
+  font-size: 30px;
+  cursor: pointer;
+  color: gray;
+}
+
+.stars span.active {
+  color: gold;
+}

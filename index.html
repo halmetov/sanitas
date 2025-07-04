@@ -20,10 +20,22 @@
         <option value="">Дәрігерді таңдаңыз</option>
       </select>
 
+      <div class="rating">
+        <p>Дәрігердің жеке бағасы:</p>
+        <div id="doctorStars" class="stars"></div>
+        <input type="hidden" name="doctor_rating" id="doctor_rating" value="0">
+      </div>
+
       <label for="nurse">Медбике:</label>
       <select id="nurse" name="nurse">
         <option value="">Медбикені таңдаңыз</option>
       </select>
+
+      <div class="rating">
+        <p>Медбикенің жеке бағасы:</p>
+        <div id="nurseStars" class="stars"></div>
+        <input type="hidden" name="nurse_rating" id="nurse_rating" value="0">
+      </div>
 
       <label for="patient_name">Аты-жөніңіз:</label>
       <input type="text" id="patient_name" name="patient_name" required>

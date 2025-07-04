@@ -14,77 +14,59 @@ async function loadDepartments() {
     return;
   }
   const departmentSelect = document.getElementById('department');
-  const departmentFilter = document.getElementById('departmentFilter');
-  
   data.forEach(dept => {
     const option = document.createElement('option');
     option.value = dept.id;
     option.textContent = dept.name;
-    if (departmentSelect) departmentSelect.appendChild(option);
-    if (departmentFilter) departmentFilter.appendChild(option.cloneNode(true));
+    departmentSelect.appendChild(option);
   });
-
-  // Переносим это сюда — после того как options добавлены
-  const urlParams = new URLSearchParams(window.location.search);
-  const deptId = urlParams.get('dept');
-  console.log('deptId:', deptId);
-
-  if (deptId && departmentSelect) {
-    departmentSelect.value = deptId;
-    loadDoctors(deptId);
-    loadNurses(deptId);
-    departmentSelect.disabled = true; // Если нужно заблокировать выбор
-  }
 }
 
-
 async function loadDoctors(departmentId) {
-  const { data, error } = await sb
-    .from('doctors')
-    .select('*')
-    .eq('department_id', departmentId);
+  const { data, error } = await sb.from('doctors').select('*').eq('department_id', departmentId);
   if (error) {
     console.error('Error loading doctors:', error);
     return;
   }
   const doctorSelect = document.getElementById('doctor');
   doctorSelect.innerHTML = '<option value="">Дәрігерді таңдаңыз</option>';
-  data.forEach(doctor => {
+  data.forEach(doc => {
     const option = document.createElement('option');
-    option.value = doctor.id;
-    option.textContent = doctor.name;
+    option.value = doc.id;
+    option.textContent = doc.name;
     doctorSelect.appendChild(option);
   });
 }
 
-async function loadNurses(departmentId) {
-  const { data, error } = await sb
-    .from('nurses')
-    .select('*')
-    .eq('department_id', departmentId);
-  if (error) {
-    console.error('Error loading nurses:', error);
-    return;
+function setupStars(containerId, inputId) {
+  const container = document.getElementById(containerId);
+  const input = document.getElementById(inputId);
+  container.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const star = document.createElement('span');
+    star.textContent = '★';
+    star.style.cursor = 'pointer';
+    star.addEventListener('click', () => {
+      input.value = i;
+      Array.from(container.children).forEach((s, index) => {
+        s.style.color = index < i ? '#ffc107' : '#ccc';
+      });
+    });
+    container.appendChild(star);
   }
-  const nurseSelect = document.getElementById('nurse');
-  nurseSelect.innerHTML = '<option value="">Медбикені таңдаңыз</option>';
-  data.forEach(nurse => {
-    const option = document.createElement('option');
-    option.value = nurse.id;
-    option.textContent = nurse.name;
-    nurseSelect.appendChild(option);
-  });
 }
 
 async function submitReview(event) {
   event.preventDefault();
   const form = event.target;
+
   const review = {
     patient_name: form.patient_name.value,
     patient_phone: form.patient_phone.value,
     department_id: form.department.value,
     doctor_id: form.doctor.value || null,
-    nurse_id: form.nurse.value || null,
+    doctor_rating: parseInt(form.doctor_rating.value) || 0,
+    nurse_rating: parseInt(form.nurse_rating.value) || 0,
     answers: {
       q1: parseInt(form.q1.value) || 0,
       q2: parseInt(form.q2.value) || 0,
@@ -101,13 +83,53 @@ async function submitReview(event) {
   if (error) {
     console.error('Error submitting review:', error);
     alert('Пікірді жіберу кезінде қате пайда болды');
-  } else {
-    alert('Пікіріңіз сәтті жіберілді!');
-    form.reset();
+    return;
   }
+
+  // Telegram
+  const botToken = 'ТВОЙ_BOT_TOKEN';
+  const chatId = 'ТВОЙ_CHAT_ID';
+  const message = `
+Жаңа пікір келді!
+
+👤 ${review.patient_name}
+📞 ${review.patient_phone}
+🏥 Бөлімше ID: ${review.department_id}
+👨‍⚕️ Дәрігер ID: ${review.doctor_id}
+⭐ Дәрігер бағасы: ${review.doctor_rating}
+⭐ Медбике бағасы: ${review.nurse_rating}
+📝 Сауалнама: ${Object.values(review.answers).join(', ')}
+  `;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: message })
+    });
+  } catch (err) {
+    console.error('Telegram error:', err);
+  }
+
+  alert('Пікіріңіз сәтті жіберілді!');
+  form.reset();
+  setupStars('doctorStars', 'doctor_rating');
+  setupStars('nurseStars', 'nurse_rating');
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+  loadDepartments();
+  setupStars('doctorStars', 'doctor_rating');
+  setupStars('nurseStars', 'nurse_rating');
 
+  const form = document.getElementById('reviewForm');
+  if (form) {
+    form.addEventListener('submit', submitReview);
+    document.getElementById('department').addEventListener('change', (e) => {
+      loadDoctors(e.target.value);
+    });
+  }
+});
 let chart;
 
 async function loadStatistics() {
