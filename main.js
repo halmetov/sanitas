@@ -98,11 +98,46 @@ async function submitReview(event) {
   event.preventDefault();
   const form = event.target;
 
+  const departmentId = form.department.value;
+  const doctorId = form.doctor.value;
+  const nurseId = form.nurse.value;
+
+  // Получаем название отделения
+  const { data: departmentData } = await sb
+    .from('departments')
+    .select('name')
+    .eq('id', departmentId)
+    .single();
+
+  // Получаем имя доктора
+  let doctorName = '';
+  if (doctorId) {
+    const { data: doctorData } = await sb
+      .from('doctors')
+      .select('name')
+      .eq('id', doctorId)
+      .single();
+    doctorName = doctorData ? doctorData.name : '';
+  }
+
+  // Получаем имя медсестры
+  let nurseName = '';
+  if (nurseId) {
+    const { data: nurseData } = await sb
+      .from('nurses')
+      .select('name')
+      .eq('id', nurseId)
+      .single();
+    nurseName = nurseData ? nurseData.name : '';
+  }
+
+  // Подготовка данных для базы
   const review = {
     patient_name: form.patient_name.value,
     patient_phone: form.patient_phone.value,
-    department_id: form.department.value,
-    doctor_id: form.doctor.value || null,
+    department_id: departmentId,
+    doctor_id: doctorId || null,
+    nurse_id: nurseId || null,
     doctor_rating: parseInt(form.doctor_rating.value) || 0,
     nurse_rating: parseInt(form.nurse_rating.value) || 0,
     answers: {
@@ -117,6 +152,7 @@ async function submitReview(event) {
     created_at: new Date().toISOString(),
   };
 
+  // Сохраняем в Supabase
   const { error } = await sb.from('reviews').insert([review]);
   if (error) {
     console.error('Error submitting review:', error);
@@ -124,36 +160,34 @@ async function submitReview(event) {
     return;
   }
 
-  // Telegram
-  const botToken = '8123282711:AAFd2HZjUqS1KRlhNMGrCNOtjvHIuX6zSt0';
-  const chatId = '758761122';
+  // Готовим текст для Telegram
+  const answersText = Object.values(review.answers).join(', ');
   const message = `
-    Жаңа пікір келді!
+  🆕 Жаңа пікір келді!
+  👤 ${review.patient_name}
+  📞 ${review.patient_phone}
+  🏥 Бөлімше: ${departmentData ? departmentData.name : '—'}
+  👨‍⚕️ Дәрігер: ${doctorName || '—'}
+  👩‍⚕️ Медбике: ${nurseName || '—'}
+  ⭐ Дәрігер бағасы: ${review.doctor_rating}
+  ⭐ Медбике бағасы: ${review.nurse_rating}
+  📝 Сауалнама: ${answersText}
+    `;
 
-    👤 ${review.patient_name}
-    📞 ${review.patient_phone}
-    🏥 Бөлімше ID: ${review.department_id}
-    👨‍⚕️ Дәрігер ID: ${review.doctor_id}
-    ⭐ Дәрігер бағасы: ${review.doctor_rating}
-    ⭐ Медбике бағасы: ${review.nurse_rating}
-    📝 Сауалнама: ${Object.values(review.answers).join(', ')}
-      `;
-
-  try {
-    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: message })
-    });
-  } catch (err) {
-    console.error('Telegram error:', err);
-  }
+  // Отправляем в Telegram
+  await fetch(`https://api.telegram.org/bot8123282711:AAFd2HZjUqS1KRlhNMGrCNOtjvHIuX6zSt0/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: '758761122',
+      text: message,
+    })
+  });
 
   alert('Пікіріңіз сәтті жіберілді!');
   form.reset();
-  setupStars('doctorStars', 'doctor_rating');
-  setupStars('nurseStars', 'nurse_rating');
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
   loadDepartments();
