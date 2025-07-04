@@ -152,7 +152,7 @@ async function loadStatistics() {
   });
 
   // Отзывы
-  const reviewsDiv = document.getElementById('reviews');
+  const reviewsDiv = document.getElementById('reviewsContainer');
   data.forEach(review => {
     const card = document.createElement('div');
     card.classList.add('review-card');
