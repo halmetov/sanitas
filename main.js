@@ -14,27 +14,65 @@ async function loadDepartments() {
     return;
   }
   const departmentSelect = document.getElementById('department');
+  const departmentFilter = document.getElementById('departmentFilter');
+  
   data.forEach(dept => {
     const option = document.createElement('option');
     option.value = dept.id;
     option.textContent = dept.name;
-    departmentSelect.appendChild(option);
+    if (departmentSelect) departmentSelect.appendChild(option);
+    if (departmentFilter) departmentFilter.appendChild(option.cloneNode(true));
   });
+
+  // Переносим это сюда — после того как options добавлены
+  const urlParams = new URLSearchParams(window.location.search);
+  const deptId = urlParams.get('dept');
+  console.log('deptId:', deptId);
+
+  if (deptId && departmentSelect) {
+    departmentSelect.value = deptId;
+    loadDoctors(deptId);
+    loadNurses(deptId);
+    departmentSelect.disabled = true; // Если нужно заблокировать выбор
+  }
 }
 
+
 async function loadDoctors(departmentId) {
-  const { data, error } = await sb.from('doctors').select('*').eq('department_id', departmentId);
+  const { data, error } = await sb
+    .from('doctors')
+    .select('*')
+    .eq('department_id', departmentId);
   if (error) {
     console.error('Error loading doctors:', error);
     return;
   }
   const doctorSelect = document.getElementById('doctor');
   doctorSelect.innerHTML = '<option value="">Дәрігерді таңдаңыз</option>';
-  data.forEach(doc => {
+  data.forEach(doctor => {
     const option = document.createElement('option');
-    option.value = doc.id;
-    option.textContent = doc.name;
+    option.value = doctor.id;
+    option.textContent = doctor.name;
     doctorSelect.appendChild(option);
+  });
+}
+
+async function loadNurses(departmentId) {
+  const { data, error } = await sb
+    .from('nurses')
+    .select('*')
+    .eq('department_id', departmentId);
+  if (error) {
+    console.error('Error loading nurses:', error);
+    return;
+  }
+  const nurseSelect = document.getElementById('nurse');
+  nurseSelect.innerHTML = '<option value="">Медбикені таңдаңыз</option>';
+  data.forEach(nurse => {
+    const option = document.createElement('option');
+    option.value = nurse.id;
+    option.textContent = nurse.name;
+    nurseSelect.appendChild(option);
   });
 }
 
@@ -90,16 +128,16 @@ async function submitReview(event) {
   const botToken = '8123282711:AAFd2HZjUqS1KRlhNMGrCNOtjvHIuX6zSt0';
   const chatId = '758761122';
   const message = `
-      Жаңа пікір келді!
+    Жаңа пікір келді!
 
-      👤 ${review.patient_name}
-      📞 ${review.patient_phone}
-      🏥 Бөлімше ID: ${review.department_id}
-      👨‍⚕️ Дәрігер ID: ${review.doctor_id}
-      ⭐ Дәрігер бағасы: ${review.doctor_rating}
-      ⭐ Медбике бағасы: ${review.nurse_rating}
-      📝 Сауалнама: ${Object.values(review.answers).join(', ')}
-        `;
+    👤 ${review.patient_name}
+    📞 ${review.patient_phone}
+    🏥 Бөлімше ID: ${review.department_id}
+    👨‍⚕️ Дәрігер ID: ${review.doctor_id}
+    ⭐ Дәрігер бағасы: ${review.doctor_rating}
+    ⭐ Медбике бағасы: ${review.nurse_rating}
+    📝 Сауалнама: ${Object.values(review.answers).join(', ')}
+      `;
 
   try {
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -130,105 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-let chart;
 
-async function loadStatistics() {
-  const departmentFilter = document.getElementById('departmentFilter').value;
-  let query = sb.from('reviews').select('answers, department_id, departments(name), doctors(name), doctor_id');
-  if (departmentFilter) {
-    query = query.eq('department_id', departmentFilter);
-  }
-  const { data, error } = await query;
-  if (error) {
-    console.error('Error loading statistics:', error);
-    return;
-  }
-
-  // Очищаем
-  const statsDiv = document.getElementById('stats');
-  statsDiv.innerHTML = '<canvas id="chart"></canvas>';
-
-  const questionLabels = [
-    'Сыпайылық пен қарым-қатынас',
-    'Қызмет сапасы',
-    'Қызмет көрсету жылдамдығы',
-    'Ақпараттың түсініктілігі',
-    'Кәсіби деңгей',
-    'Тазалық пен жайлылық',
-    'Жалпы қанағаттану'
-  ];
-  const maxScores = [5, 5, 3, 3, 5, 3, 5];
-
-  // Если фильтр по одному отделению
-  if (departmentFilter) {
-    // Статистика по врачам
-    const doctorMap = {};
-
-    data.forEach(review => {
-      const doctorId = review.doctor_id || 'Басқа';
-      if (!doctorMap[doctorId]) {
-        doctorMap[doctorId] = { count: 0, sum: 0, name: review.doctors?.name || 'Аноним' };
-      }
-      const totalScore = Object.values(review.answers).reduce((a, b) => a + b, 0);
-      doctorMap[doctorId].sum += totalScore;
-      doctorMap[doctorId].count++;
-    });
-
-    const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
-    table.innerHTML = `
-      <tr>
-        <th style="border:1px solid #ccc; padding:5px;">Дәрігер</th>
-        <th style="border:1px solid #ccc; padding:5px;">Орташа баға</th>
-        <th style="border:1px solid #ccc; padding:5px;">Пікірлер саны</th>
-      </tr>
-    `;
-
-    Object.values(doctorMap).forEach(doc => {
-      const avg = doc.count ? (doc.sum / doc.count / 7).toFixed(2) : '0.00';
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td style="border:1px solid #ccc; padding:5px;">${doc.name}</td>
-        <td style="border:1px solid #ccc; padding:5px;">${avg}</td>
-        <td style="border:1px solid #ccc; padding:5px;">${doc.count}</td>
-      `;
-      table.appendChild(row);
-    });
-
-    statsDiv.appendChild(table);
-  }
-
-  // Статистика по вопросам
-  const averages = questionLabels.map((label, i) => {
-    const scores = data.map(review => review.answers[`q${i + 1}`]);
-    const avg = scores.length ? (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2) : 0;
-    return avg;
-  });
-
-  // Рисуем график
-  const ctx = document.getElementById('chart').getContext('2d');
-  if (chart) chart.destroy(); // удаляем старый
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: questionLabels,
-      datasets: [{
-        label: 'Орташа баға',
-        data: averages,
-        backgroundColor: '#3e95cd',
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 5
-        }
-      }
-    }
-  });
-}
 
 document.addEventListener('DOMContentLoaded', () => {
   loadDepartments();
