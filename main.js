@@ -87,19 +87,19 @@ async function submitReview(event) {
   }
 
   // Telegram
-  const botToken = 'ТВОЙ_BOT_TOKEN';
-  const chatId = 'ТВОЙ_CHAT_ID';
+  const botToken = '8123282711:AAFd2HZjUqS1KRlhNMGrCNOtjvHIuX6zSt0';
+  const chatId = '758761122';
   const message = `
-Жаңа пікір келді!
+      Жаңа пікір келді!
 
-👤 ${review.patient_name}
-📞 ${review.patient_phone}
-🏥 Бөлімше ID: ${review.department_id}
-👨‍⚕️ Дәрігер ID: ${review.doctor_id}
-⭐ Дәрігер бағасы: ${review.doctor_rating}
-⭐ Медбике бағасы: ${review.nurse_rating}
-📝 Сауалнама: ${Object.values(review.answers).join(', ')}
-  `;
+      👤 ${review.patient_name}
+      📞 ${review.patient_phone}
+      🏥 Бөлімше ID: ${review.department_id}
+      👨‍⚕️ Дәрігер ID: ${review.doctor_id}
+      ⭐ Дәрігер бағасы: ${review.doctor_rating}
+      ⭐ Медбике бағасы: ${review.nurse_rating}
+      📝 Сауалнама: ${Object.values(review.answers).join(', ')}
+        `;
 
   try {
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
