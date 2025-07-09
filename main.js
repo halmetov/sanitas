@@ -179,7 +179,7 @@ async function submitReview(event) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      chat_id: '758761122',
+      chat_id: '148360085',
       text: message,
     })
   });
